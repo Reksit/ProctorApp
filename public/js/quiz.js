@@ -1,3 +1,9 @@
+// --- NATIVE API VAULT (Anti-Extension Script Injection Protection) ---
+const _realAddEventListener = EventTarget.prototype.addEventListener;
+const _realRemoveEventListener = EventTarget.prototype.removeEventListener;
+const _realHasFocus = Document.prototype.hasFocus || document.hasFocus;
+const _realGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. Authorize user as student
   const user = checkAuth('student');
@@ -376,36 +382,97 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- PROCTORING ENGINE & DETECTIONS ---
   
   function bindProctoringEvents() {
-    // 1. Tab Switch / Minimize detection
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
+    // 1. Tab Switch / Minimize detection (Capture phase binding)
+    _realAddEventListener.call(document, 'visibilitychange', handleVisibilityChange, true);
+    _realAddEventListener.call(window, 'blur', handleWindowBlur, true);
 
     // 2. Fullscreen escape detection
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    _realAddEventListener.call(document, 'fullscreenchange', handleFullscreenChange, true);
+    _realAddEventListener.call(document, 'webkitfullscreenchange', handleFullscreenChange, true);
 
     // 3. Right-Click block
-    document.addEventListener('contextmenu', blockRightClick);
+    _realAddEventListener.call(document, 'contextmenu', blockRightClick, true);
 
     // 4. Keyboard F12 / DevTools block
-    window.addEventListener('keydown', blockDevToolsKeys);
+    _realAddEventListener.call(window, 'keydown', blockDevToolsKeys, true);
 
     // 5. Copy & Paste blocks
-    document.addEventListener('copy', blockCopyPaste);
-    document.addEventListener('paste', blockCopyPaste);
-    document.addEventListener('selectstart', blockTextSelection);
+    _realAddEventListener.call(document, 'copy', blockCopyPaste, true);
+    _realAddEventListener.call(document, 'paste', blockCopyPaste, true);
+    _realAddEventListener.call(document, 'selectstart', blockTextSelection, true);
+
+    // 6. Anti-Tamper & Extension Spoofing Scanner
+    startAntiTamperScanner();
+
+    // 7. Browser Rendering Engine Throttle Detector (Alt+Tab / Background Tab)
+    startRafThrottleDetector();
   }
 
   function unbindProctoringEvents() {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    window.removeEventListener('blur', handleWindowBlur);
-    document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.removeEventListener('contextmenu', blockRightClick);
-    window.removeEventListener('keydown', blockDevToolsKeys);
-    document.removeEventListener('copy', blockCopyPaste);
-    document.removeEventListener('paste', blockCopyPaste);
-    document.removeEventListener('selectstart', blockTextSelection);
+    _realRemoveEventListener.call(document, 'visibilitychange', handleVisibilityChange, true);
+    _realRemoveEventListener.call(window, 'blur', handleWindowBlur, true);
+    _realRemoveEventListener.call(document, 'fullscreenchange', handleFullscreenChange, true);
+    _realRemoveEventListener.call(document, 'webkitfullscreenchange', handleFullscreenChange, true);
+    _realRemoveEventListener.call(document, 'contextmenu', blockRightClick, true);
+    _realRemoveEventListener.call(window, 'keydown', blockDevToolsKeys, true);
+    _realRemoveEventListener.call(document, 'copy', blockCopyPaste, true);
+    _realRemoveEventListener.call(document, 'paste', blockCopyPaste, true);
+    _realRemoveEventListener.call(document, 'selectstart', blockTextSelection, true);
+
+    if (antiTamperInterval) clearInterval(antiTamperInterval);
+    if (rafId) cancelAnimationFrame(rafId);
+  }
+
+  // --- ANTI-EXTENSION SCRIPT INJECTION SCANNER ---
+  let antiTamperInterval = null;
+
+  function startAntiTamperScanner() {
+    antiTamperInterval = setInterval(() => {
+      if (quizSubmitted || !quizStarted) return;
+
+      try {
+        // Check if property getters for document.hidden or visibilityState were tampered with by extension
+        const hiddenDesc = _realGetOwnPropertyDescriptor(Document.prototype, 'hidden') || _realGetOwnPropertyDescriptor(document, 'hidden');
+        if (hiddenDesc && typeof hiddenDesc.get === 'function') {
+          const fnString = hiddenDesc.get.toString();
+          if (!fnString.includes('[native code]') && !fnString.includes('hidden')) {
+            logViolation('Extension Script Injection', 'Browser extension script override detected on document.hidden API.');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        // Verify native window focus vs document state
+        const nativeFocus = _realHasFocus.call(document);
+        const isDocHidden = document.hidden || document.visibilityState === 'hidden';
+
+        if (!nativeFocus && !isDocHidden && document.activeElement && document.activeElement.tagName !== 'IFRAME') {
+          logViolation('Focus Anomaly', 'Window focus lost despite extension state suppression.');
+        }
+      } catch (e) {}
+    }, 1500);
+  }
+
+  // --- BROWSER ENGINE THROTTLE DETECTOR (Un-spoofable Alt+Tab / Background Detector) ---
+  let lastFrameTime = performance.now();
+  let rafId = null;
+
+  function startRafThrottleDetector() {
+    function checkFrame(now) {
+      if (quizStarted && !quizSubmitted) {
+        const delta = now - lastFrameTime;
+        // Browsers throttle rAF loop when switching windows/tabs (from 60fps to ~0.5fps).
+        // If time delta > 1.8 seconds, the user switched windows!
+        if (delta > 1800) {
+          logViolation('Background Tab Throttle', 'Browser engine background throttling detected (Alt+Tab / Tab Switch).');
+        }
+        lastFrameTime = now;
+      }
+      rafId = requestAnimationFrame(checkFrame);
+    }
+    lastFrameTime = performance.now();
+    rafId = requestAnimationFrame(checkFrame);
   }
 
   // Warning Modal Actions
@@ -493,14 +560,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function handleWindowBlur() {
-    // Timeout added because clicking window overlays (like requestFullscreen alert) can briefly trigger blur
-    setTimeout(() => {
-      if (document.activeElement && document.activeElement.tagName === 'IFRAME') return; // Ignore iframes
-      if (!document.hasFocus() && !quizSubmitted) {
-        logViolation('Focus Lost', 'User navigated outside the primary test viewport window.');
-      }
-    }, 200);
+  function handleWindowBlur(e) {
+    if (quizSubmitted || !quizStarted) return;
+    
+    // Ignore iframe clicks
+    if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+
+    // Direct window blur event means user Alt+Tabbed or switched window focus!
+    logViolation('Window Focus Lost (Alt+Tab)', 'User switched focus away from the exam window (Alt+Tab / Task Switch).');
   }
 
   function handleFullscreenChange() {
@@ -516,6 +583,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function blockDevToolsKeys(e) {
+    // Detect Alt+Tab, Meta+Tab, Alt+Esc, Ctrl+Tab
+    if ((e.altKey && e.key === 'Tab') || (e.metaKey && e.key === 'Tab') || (e.ctrlKey && e.key === 'Tab') || e.key === 'Alt') {
+      e.preventDefault();
+      logViolation('Alt+Tab Intercepted', 'User attempted window navigation via Alt+Tab shortcut.');
+      return;
+    }
+
     const forbiddenKeys = ['F12'];
     const ctrlShiftKeys = ['I', 'i', 'J', 'j', 'C', 'c'];
     

@@ -51,7 +51,16 @@
       <div style="display: flex; flex-direction: column; gap: 2rem;">
         
         <div class="history-card glass">
-          <h3>Student Progress & Proctor Audits</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <h3 style="margin:0;">Student Progress & Proctor Audits</h3>
+            
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <label for="admin-quiz-filter" style="font-size:0.85rem; color:var(--text-secondary); font-weight:500;">Filter by Test:</label>
+              <select id="admin-quiz-filter" class="input-control" style="padding:0.4rem 0.8rem; font-size:0.85rem; min-width:220px;">
+                <option value="all">-- All Conducted Tests --</option>
+              </select>
+            </div>
+          </div>
           <div class="table-responsive">
             <table>
               <thead>

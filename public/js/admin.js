@@ -342,6 +342,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     formAlertBox.style.display = 'none';
   }
 
+  let allAttempts = [];
+
   // --- FETCH STUDENT AUDITS TABLE ---
   async function loadStudentAttempts() {
     try {
@@ -350,107 +352,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       
       if (!res.ok) throw new Error('Could not retrieve progress logs');
-      const attempts = await res.json();
+      allAttempts = await res.json();
 
-      totalAttemptsEl.textContent = attempts.length;
-
-      if (attempts.length === 0) {
-        attemptsTableBody.innerHTML = `
-          <tr>
-            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No student attempts logged yet.</td>
-          </tr>
-        `;
-        avgAccuracyEl.textContent = '0%';
-        flaggedAttemptsEl.textContent = '0';
-        return;
-      }
-
-      let totalAccuracy = 0;
-      let flaggedCount = 0;
-
-      attemptsTableBody.innerHTML = '';
-      attempts.forEach((attempt, index) => {
-        const accuracy = Math.round((attempt.score / attempt.totalQuestions) * 100);
-        totalAccuracy += accuracy;
-        
-        const isFlagged = attempt.status === 'terminated' || attempt.violationCount >= 3;
-        if (isFlagged) flaggedCount++;
-
-        const studentName = attempt.student ? attempt.student.username : 'Unknown Student';
-        const studentEmail = attempt.student ? attempt.student.email : '';
-        const quizTitle = attempt.quiz ? attempt.quiz.title : 'Deleted Quiz';
-
-        const dateStr = new Date(attempt.completedAt).toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-
-        const mins = Math.floor(attempt.timeTaken / 60);
-        const secs = attempt.timeTaken % 60;
-        const timeStr = `${mins}m ${secs}s`;
-
-        const warningClass = attempt.violationCount === 0 
-          ? 'color: var(--success); font-weight:600;' 
-          : attempt.violationCount < 3 
-            ? 'color: var(--warning); font-weight:600;' 
-            : 'color: var(--danger); font-weight:600;';
-
-        const statusLabel = attempt.status === 'terminated'
-          ? '<span class="status-badge violated">TERMINATED</span>'
-          : isFlagged
-            ? '<span class="status-badge violated">SUSPICIOUS</span>'
-            : '<span class="status-badge clean">SECURE</span>';
-
-        // Render audit timeline logs drawer contents
-        let timelineHtml = '';
-        if (attempt.violations && attempt.violations.length > 0) {
-          attempt.violations.forEach(v => {
-            const vTime = new Date(v.timestamp).toLocaleTimeString();
-            timelineHtml += `
-              <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:0.2rem;">
-                <span style="color:var(--danger); font-weight:500;">🚨 [${v.type}]</span>
-                <span style="color:var(--text-muted); font-size:0.75rem;">${vTime}</span>
-              </div>
-              <div style="color:var(--text-secondary); margin-bottom:0.6rem; padding-left:1rem; line-height:1.4;">${v.details}</div>
-            `;
-          });
-        } else {
-          timelineHtml = '<div style="color:var(--success); text-align:center;">No violations logged. Exam was completed securely.</div>';
-        }
-
-        const trId = `tr-drawer-${index}`;
-
-        attemptsTableBody.innerHTML += `
-          <tr>
-            <td>
-              <strong>${studentName}</strong>
-              <div style="font-size:0.75rem; color:var(--text-muted);">${studentEmail}</div>
-            </td>
-            <td>${quizTitle}</td>
-            <td><strong>${attempt.score}/${attempt.totalQuestions}</strong> (${accuracy}%)</td>
-            <td>${timeStr}</td>
-            <td style="${warningClass}">${attempt.violationCount}</td>
-            <td>${statusLabel}</td>
-            <td>
-              <button class="timeline-toggle" onclick="toggleTimelineDrawer('${trId}')">Inspect Logs</button>
-            </td>
-          </tr>
-          <tr id="${trId}" style="display:none; background: #0c0d12;">
-            <td colspan="7">
-              <div style="padding: 1rem; border-left: 3px solid ${isFlagged ? 'var(--danger)' : 'var(--success)'};">
-                <h5 style="margin-bottom:0.8rem; font-weight:600; text-transform:uppercase; font-size:0.8rem; letter-spacing:0.5px; color:var(--text-secondary);">Chronological Proctor Security Details (${dateStr})</h5>
-                ${timelineHtml}
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
-      avgAccuracyEl.textContent = `${Math.round(totalAccuracy / attempts.length)}%`;
-      flaggedAttemptsEl.textContent = flaggedCount;
-
+      const quizFilterSelect = document.getElementById('admin-quiz-filter');
+      const selectedQuizId = quizFilterSelect ? quizFilterSelect.value : 'all';
+      renderFilteredAttempts(selectedQuizId);
     } catch (err) {
       console.error(err);
       attemptsTableBody.innerHTML = `
@@ -459,6 +365,115 @@ document.addEventListener('DOMContentLoaded', async () => {
         </tr>
       `;
     }
+  }
+
+  function renderFilteredAttempts(filterQuizId = 'all') {
+    let filtered = allAttempts;
+    if (filterQuizId !== 'all') {
+      filtered = allAttempts.filter(a => a.quiz && (a.quiz._id === filterQuizId || a.quiz === filterQuizId));
+    }
+
+    totalAttemptsEl.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+      const msg = filterQuizId === 'all' 
+        ? 'No student attempts logged yet.' 
+        : 'No student attempts logged for this specific test yet.';
+      attemptsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">${msg}</td>
+        </tr>
+      `;
+      avgAccuracyEl.textContent = '0%';
+      flaggedAttemptsEl.textContent = '0';
+      return;
+    }
+
+    let totalAccuracy = 0;
+    let flaggedCount = 0;
+
+    attemptsTableBody.innerHTML = '';
+    filtered.forEach((attempt, index) => {
+      const accuracy = Math.round((attempt.score / attempt.totalQuestions) * 100);
+      totalAccuracy += accuracy;
+      
+      const isFlagged = attempt.status === 'terminated' || attempt.violationCount >= 3;
+      if (isFlagged) flaggedCount++;
+
+      const studentName = attempt.student ? attempt.student.username : 'Unknown Student';
+      const studentEmail = attempt.student ? attempt.student.email : '';
+      const quizTitle = attempt.quiz ? attempt.quiz.title : 'Deleted Quiz';
+
+      const dateStr = new Date(attempt.completedAt).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const mins = Math.floor(attempt.timeTaken / 60);
+      const secs = attempt.timeTaken % 60;
+      const timeStr = `${mins}m ${secs}s`;
+
+      const warningClass = attempt.violationCount === 0 
+        ? 'color: var(--success); font-weight:600;' 
+        : attempt.violationCount < 3 
+          ? 'color: var(--warning); font-weight:600;' 
+          : 'color: var(--danger); font-weight:600;';
+
+      const statusLabel = attempt.status === 'terminated'
+        ? '<span class="status-badge violated">TERMINATED</span>'
+        : isFlagged
+          ? '<span class="status-badge violated">SUSPICIOUS</span>'
+          : '<span class="status-badge clean">SECURE</span>';
+
+      // Render audit timeline logs drawer contents
+      let timelineHtml = '';
+      if (attempt.violations && attempt.violations.length > 0) {
+        attempt.violations.forEach(v => {
+          const vTime = new Date(v.timestamp).toLocaleTimeString();
+          timelineHtml += `
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:0.2rem;">
+              <span style="color:var(--danger); font-weight:500;">🚨 [${v.type}]</span>
+              <span style="color:var(--text-muted); font-size:0.75rem;">${vTime}</span>
+            </div>
+            <div style="color:var(--text-secondary); margin-bottom:0.6rem; padding-left:1rem; line-height:1.4;">${v.details}</div>
+          `;
+        });
+      } else {
+        timelineHtml = '<div style="color:var(--success); text-align:center;">No violations logged. Exam was completed securely.</div>';
+      }
+
+      const trId = `tr-drawer-${index}`;
+
+      attemptsTableBody.innerHTML += `
+        <tr>
+          <td>
+            <strong>${studentName}</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${studentEmail}</div>
+          </td>
+          <td>${quizTitle}</td>
+          <td><strong>${attempt.score}/${attempt.totalQuestions}</strong> (${accuracy}%)</td>
+          <td>${timeStr}</td>
+          <td style="${warningClass}">${attempt.violationCount}</td>
+          <td>${statusLabel}</td>
+          <td>
+            <button class="timeline-toggle" onclick="toggleTimelineDrawer('${trId}')">Inspect Logs</button>
+          </td>
+        </tr>
+        <tr id="${trId}" style="display:none; background: #0c0d12;">
+          <td colspan="7">
+            <div style="padding: 1rem; border-left: 3px solid ${isFlagged ? 'var(--danger)' : 'var(--success)'};">
+              <h5 style="margin-bottom:0.8rem; font-weight:600; text-transform:uppercase; font-size:0.8rem; letter-spacing:0.5px; color:var(--text-secondary);">Chronological Proctor Security Details (${dateStr})</h5>
+              ${timelineHtml}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    avgAccuracyEl.textContent = `${Math.round(totalAccuracy / filtered.length)}%`;
+    flaggedAttemptsEl.textContent = flaggedCount;
   }
 
   // --- FETCH CREATED QUIZZES TABLE ---
@@ -480,6 +495,25 @@ document.addEventListener('DOMContentLoaded', async () => {
           </tr>
         `;
         return;
+      }
+
+      // Populate Quiz Filter Select Options
+      const quizFilterSelect = document.getElementById('admin-quiz-filter');
+      if (quizFilterSelect) {
+        const currentSelection = quizFilterSelect.value;
+        quizFilterSelect.innerHTML = '<option value="all">-- All Conducted Tests --</option>';
+        quizzes.forEach(q => {
+          quizFilterSelect.innerHTML += `<option value="${q._id}">${q.title} (${q.assignedDate})</option>`;
+        });
+        if (currentSelection) quizFilterSelect.value = currentSelection;
+
+        // Bind filter change listener once
+        if (!quizFilterSelect.dataset.listenerBound) {
+          quizFilterSelect.dataset.listenerBound = 'true';
+          quizFilterSelect.addEventListener('change', (e) => {
+            renderFilteredAttempts(e.target.value);
+          });
+        }
       }
 
       quizzesTableBody.innerHTML = '';
