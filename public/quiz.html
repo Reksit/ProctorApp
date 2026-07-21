@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Examination Portal - Proctor Shield</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Secure Quiz Header (No external links or logouts) -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span style="font-size: 1.8rem; vertical-align: middle;">🛡️</span>
+      <span class="text-gradient">PROCTOR SHIELD SECURE BROWSER</span>
+    </div>
+    <div id="quiz-header-title" style="font-weight: 600; color: var(--text-secondary);">Java OOP Quiz</div>
+  </nav>
+
+  <!-- Main Viewport -->
+  <div class="quiz-layout">
+    
+    <!-- Left Main area: Quiz cards, setup sheets, and final score sheets -->
+    <div class="quiz-main">
+
+      <!-- STEP 1: PRE-EXAM CHECK & AGREEMENT CARD -->
+      <div id="setup-card" class="quiz-viewport-card glass">
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem;" class="text-gradient">Secure Exam Setup & System Check</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Please review the mandatory system checks and agree to the proctoring rules before starting the examination.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <h4 style="color: var(--primary); font-weight: 600; font-size: 1rem;">System Requirements Check:</h4>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;">
+            <span>📷 Webcam Access Permission</span>
+            <span id="check-camera-status" style="color: var(--warning); font-weight: 600;">Checking...</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;">
+            <span>🖥️ Fullscreen Browser Support</span>
+            <span id="check-fullscreen-status" style="color: var(--success); font-weight: 600;">Supported ✅</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;">
+            <span>🔒 Anti-Tab Switching Monitor</span>
+            <span style="color: var(--success); font-weight: 600;">Active 🛡️</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Examination Rules & Guidelines:</h4>
+          <ul style="color: var(--text-secondary); font-size: 0.9rem; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <li>The browser <strong>MUST</strong> remain in Fullscreen mode. Exiting fullscreen logs a security violation.</li>
+            <li>Do not switch tabs, open other applications, or navigate away. Tab switching is logged instantly.</li>
+            <li>Copying question text or right-clicking is strictly blocked.</li>
+            <li>Your camera feed is monitored for validation. Keep your face centered in the camera frame.</li>
+            <li>If you accumulate <strong>3 security violations</strong>, the test will be <strong>terminated and auto-submitted</strong>.</li>
+          </ul>
+        </div>
+
+        <button id="btn-initialize-exam" class="btn-start-quiz btn-disabled" disabled style="width: 100%;">Authorize Fullscreen & Start Exam</button>
+      </div>
+
+      <!-- STEP 2: ACTIVE QUESTION CARD (Hidden by default) -->
+      <div id="question-card" class="quiz-viewport-card glass" style="display: none;">
+        <div class="quiz-question-header">
+          <span class="question-num" id="question-index-label">Question 1 of --</span>
+          <button class="flag-btn" id="btn-flag-question">
+            <span>🚩</span> Flag for Review
+          </button>
+        </div>
+
+        <!-- Question description & code block -->
+        <div class="question-text" id="question-body-text">Question content goes here?</div>
+        
+        <div class="code-container" id="question-code-block" style="display: none;">
+          <pre><code id="code-content"></code></pre>
+        </div>
+
+        <!-- Option radio checklist -->
+        <div class="options-list" id="question-options-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-controls">
+          <button class="btn-nav" id="btn-prev-question">Previous</button>
+          <div style="display: flex; gap: 0.8rem;">
+            <button class="btn-nav" id="btn-skip-question" style="background: transparent; color: var(--text-secondary);">Clear Selection</button>
+            <button class="btn-nav primary-btn" id="btn-next-question">Next Question</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: SCORECARD & PERFORMANCE REVIEW (Hidden by default) -->
+      <div id="results-card" class="results-container" style="display: none;">
+        
+        <!-- Score Card Summary -->
+        <div class="results-header-card glass">
+          <h2 class="text-gradient" style="font-size: 2rem; font-weight: 800;">Exam Attempt Submitted</h2>
+          <p style="color: var(--text-secondary); margin-top: 0.3rem;">Proctor Shield audit reports compiled successfully.</p>
+          
+          <div class="results-score-radial" id="result-score-ring">
+            <span class="results-score-number" id="result-score-score">0/0</span>
+            <span class="results-score-total" id="result-score-percent">0%</span>
+          </div>
+
+          <div class="results-verdict" id="result-verdict-title">CLEARED</div>
+          
+          <div class="results-meta">
+            <div>
+              <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Duration</p>
+              <strong id="result-meta-duration" style="font-size: 1.1rem;">0m 0s</strong>
+            </div>
+            <div>
+              <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Violations Count</p>
+              <strong id="result-meta-violations" style="font-size: 1.1rem; color: var(--success);">0 Warnings</strong>
+            </div>
+          </div>
+
+          <button onclick="window.location.href='/dashboard.html'" class="btn-submit" style="margin-top: 2rem; padding: 0.8rem 2rem; font-size: 0.95rem;">Return to Student Dashboard</button>
+        </div>
+
+        <!-- Security Audit Log Card -->
+        <div class="audit-log-card glass">
+          <h4 id="audit-logs-title">🛡️ Security Audit Logs Timeline</h4>
+          <div class="audit-timeline" id="result-audit-timeline">
+            <!-- Timeline items populated by JS -->
+          </div>
+        </div>
+
+        <!-- Question Review Breakdown -->
+        <div class="review-section">
+          <h3>Question Performance Feedback</h3>
+          <div id="result-review-items-container">
+            <!-- Question Review blocks populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Right Sidebar Area: Proctor camera + widgets (Visible during active quiz) -->
+    <div class="quiz-sidebar" id="quiz-sidebar" style="display: none;">
+      
+      <!-- Video Proctor Feed -->
+      <div class="proctor-cam-wrapper secure" id="proctor-cam-wrapper">
+        <!-- Live Video Element -->
+        <video id="webcam-element" class="webcam-feed" autoplay playsinline muted></video>
+        
+        <!-- Reticle scanner grids -->
+        <div class="scanner-overlay">
+          <div class="scan-line"></div>
+        </div>
+        <div class="tracking-reticle">
+          <div class="tracking-corner c-tl"></div>
+          <div class="tracking-corner c-tr"></div>
+          <div class="tracking-corner c-bl"></div>
+          <div class="tracking-corner c-br"></div>
+        </div>
+
+        <div class="camera-status-label" id="camera-status-text">
+          <div class="blink-dot"></div>
+          <span>MONITOR ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- Proctoring Stats Widget -->
+      <div class="proctor-status-card glass">
+        <div class="status-row">
+          <span class="status-label">Proctoring:</span>
+          <span class="status-value status-secure" id="sidebar-proctor-status">SECURE</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Warnings:</span>
+          <span class="status-value" id="sidebar-violations-count" style="color: var(--text-primary);">0 / 3</span>
+        </div>
+      </div>
+
+      <!-- Time Clock Countdown Widget -->
+      <div class="timer-container glass">
+        <div class="timer-box">
+          <span class="timer-value" id="sidebar-timer-clock">30:00</span>
+          <span class="timer-label">Time Remaining</span>
+        </div>
+      </div>
+
+      <!-- Question Grid Palette Navigation -->
+      <div class="questions-palette-card glass">
+        <h4>Question Map Palette</h4>
+        <div class="palette-grid" id="sidebar-palette-grid">
+          <!-- Populated dynamically (1 to 30 buttons) -->
+        </div>
+
+        <!-- Legend mapping -->
+        <div class="palette-legend">
+          <div class="legend-item">
+            <span class="legend-dot bg-unvisited"></span>
+            <span>Unvisited</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot bg-answered"></span>
+            <span>Answered</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot bg-unanswered"></span>
+            <span>Unanswered</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot bg-flagged"></span>
+            <span>Flagged</span>
+          </div>
+        </div>
+
+        <!-- Submission Trigger -->
+        <button id="btn-submit-exam-sidebar" class="btn-submit" style="margin-top: 1.5rem; font-size: 0.9rem; background: var(--danger); box-shadow: 0 4px 12px var(--danger-glow);">
+          Submit Examination
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- WARNING DIALOG MODAL -->
+  <div class="modal-overlay" id="warning-modal">
+    <div class="modal-content danger">
+      <div class="modal-indicator-bar"></div>
+      <div class="modal-icon">⚠️</div>
+      <h3 id="warning-modal-title">Security Warning</h3>
+      <p id="warning-modal-body">A proctoring violation has been detected. Please ensure you stay within fullscreen mode and focus on this tab.</p>
+      <button class="btn-modal" id="btn-dismiss-warning">Resume Exam</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM SUBMIT MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content primary">
+      <div class="modal-indicator-bar"></div>
+      <div class="modal-icon">🙋</div>
+      <h3>Submit Examination?</h3>
+      <p>Are you sure you want to finish and submit your exam? You cannot change your answers after submission.</p>
+      <div class="modal-buttons">
+        <button class="btn-modal-secondary" id="btn-cancel-submit">Back to Exam</button>
+        <button class="btn-modal" id="btn-confirm-submit" style="background: var(--primary);">Confirm Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/quiz.js"></script>
+</body>
+</html>

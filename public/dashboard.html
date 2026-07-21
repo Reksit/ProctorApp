@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - Secure Proctor Quiz</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Dynamic Navbar container -->
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <!-- Welcome Header -->
+    <div class="dashboard-header">
+      <div class="dashboard-title">
+        <h2>Student Dashboard</h2>
+        <p>Monitor your performance metrics and active examinations.</p>
+      </div>
+    </div>
+
+    <!-- Student Stats Overview Grid -->
+    <div class="stats-grid">
+      <div class="stat-card glass">
+        <div class="stat-icon purple">📝</div>
+        <div class="stat-info">
+          <h3>Total Quizzes Taken</h3>
+          <p id="stat-total-quizzes">0</p>
+        </div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-icon green">🏆</div>
+        <div class="stat-info">
+          <h3>Average Accuracy</h3>
+          <p id="stat-avg-score">0%</p>
+        </div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-icon amber">🛡️</div>
+        <div class="stat-info">
+          <h3>Security Status</h3>
+          <p id="stat-security-status">Secure</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Quiz Assignment Panel -->
+    <div class="quiz-assignment-section">
+      <div class="quiz-banner-card glass" id="active-quiz-container">
+        <div class="quiz-banner-content">
+          <span class="quiz-tag">Assigned Exam</span>
+          <h3 id="active-quiz-title">Loading assigned quiz...</h3>
+          <p id="active-quiz-desc">Retrieving exam details from the secure server...</p>
+          <div class="quiz-meta-info">
+            <span id="active-quiz-limit">⏱️ -- mins</span>
+            <span id="active-quiz-questions">❓ -- questions</span>
+          </div>
+        </div>
+        <button id="btn-start-exam" class="btn-start-quiz btn-disabled" disabled>Start Secure Exam</button>
+      </div>
+    </div>
+
+    <!-- Historical Performance Card -->
+    <div class="history-card glass">
+      <h3>Historical Performance Records</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Exam Name</th>
+              <th>Date Attempted</th>
+              <th>Duration</th>
+              <th>Score (Accuracy)</th>
+              <th>Security Level</th>
+              <th>Proctor Status</th>
+            </tr>
+          </thead>
+          <tbody id="attempts-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted);">Retrieving attempt history...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Sign Up - Secure Proctor Quiz</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-card glass">
+      <div class="auth-header">
+        <h1 class="text-gradient">PROCTOR SHIELD</h1>
+        <p>AI-Proctored Examination Portal</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tab-login">Login</button>
+        <button type="button" class="auth-tab" id="tab-register">Sign Up</button>
+      </div>
+
+      <!-- Error / Success Alert Box -->
+      <div id="alert-box" style="display:none; padding:0.8rem; border-radius:12px; margin-bottom:1.2rem; font-size:0.9rem; font-weight:500; text-align:center;"></div>
+
+      <!-- Login Form -->
+      <form class="auth-form active" id="form-login">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="input-control" placeholder="enter your registered email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="input-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-submit">Sign In to Dashboard</button>
+      </form>
+
+      <!-- Register Form -->
+      <form class="auth-form" id="form-register">
+        <div class="form-group">
+          <label for="reg-username">Username</label>
+          <input type="text" id="reg-username" class="input-control" placeholder="student_name_123" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" class="input-control" placeholder="name@domain.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" class="input-control" placeholder="minimum 6 characters" required autocomplete="new-password" minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="reg-secret">Security Passcode (Optional)</label>
+          <input type="password" id="reg-secret" class="input-control" placeholder="enter passcode if provided">
+        </div>
+        <button type="submit" class="btn-submit">Create Account</button>
+      </form>
+
+      <p class="auth-footer-text">Protected by active tab & fullscreen monitoring</p>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

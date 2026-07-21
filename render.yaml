@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: proctor-quiz-shield
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        value: mongodb+srv://reksitrajan01:8n4SHiaJfCZRrimg@cluster0.mperr.mongodb.net/test?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: super_secret_java_oop_proctor_quiz_key_2026
