@@ -3,6 +3,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = checkAuth('admin');
   if (!user) return;
 
+  // --- ADMIN TABS NAVIGATION LOGIC ---
+  const tabHome = document.getElementById('tab-admin-home');
+  const tabResults = document.getElementById('tab-admin-results');
+  const tabManage = document.getElementById('tab-admin-manage');
+
+  const panelHome = document.getElementById('panel-admin-home');
+  const panelResults = document.getElementById('panel-admin-results');
+  const panelManage = document.getElementById('panel-admin-manage');
+
+  const tabs = [tabHome, tabResults, tabManage];
+  const panels = [panelHome, panelResults, panelManage];
+
+  tabs.forEach((tab, index) => {
+    if (tab) {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        panels.forEach(p => {
+          if (p) {
+            p.classList.remove('active');
+            p.style.display = 'none';
+          }
+        });
+
+        if (panels[index]) {
+          panels[index].classList.add('active');
+          panels[index].style.display = 'block';
+        }
+      });
+    }
+  });
+
   const attemptsTableBody = document.getElementById('admin-attempts-table-body');
   const totalAttemptsEl = document.getElementById('admin-stat-attempts');
   const avgAccuracyEl = document.getElementById('admin-stat-accuracy');
@@ -434,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const vTime = new Date(v.timestamp).toLocaleTimeString();
           timelineHtml += `
             <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:0.2rem;">
-              <span style="color:var(--danger); font-weight:500;">🚨 [${v.type}]</span>
+              <span style="color:var(--danger); font-weight:500;">[Warning - ${v.type}]</span>
               <span style="color:var(--text-muted); font-size:0.75rem;">${vTime}</span>
             </div>
             <div style="color:var(--text-secondary); margin-bottom:0.6rem; padding-left:1rem; line-height:1.4;">${v.details}</div>

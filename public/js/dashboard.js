@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       quizTitleEl.textContent = quiz.title;
       quizDescEl.textContent = quiz.description || 'No description provided.';
-      quizLimitEl.innerHTML = `⏱️ <strong>${quiz.timeLimit}</strong> mins`;
-      quizQuestionsEl.innerHTML = `❓ <strong>${quiz.totalQuestions}</strong> questions`;
+      quizLimitEl.innerHTML = `Time Limit: <strong>${quiz.timeLimit}</strong> mins`;
+      quizQuestionsEl.innerHTML = `Questions: <strong>${quiz.totalQuestions}</strong>`;
 
       if (alreadyAttempted) {
         startBtn.textContent = 'Exam Completed';
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         startBtn.textContent = 'Exam Locked';
         startBtn.className = 'btn-start-quiz btn-disabled';
         startBtn.disabled = true;
-        quizDescEl.innerHTML = `<span style="color: var(--warning); font-weight:600;">🔒 ${lockReason}</span><br><br>${quiz.description || ''}`;
+        quizDescEl.innerHTML = `<span style="color: var(--warning); font-weight:600;">Locked: ${lockReason}</span><br><br>${quiz.description || ''}`;
       } else {
         startBtn.textContent = 'Start Secure Exam';
         startBtn.className = 'btn-start-quiz';
@@ -88,9 +88,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No exam attempts logged yet.</td>
           </tr>
         `;
-        avgScoreEl.textContent = '0%';
-        securityEl.textContent = 'Secure';
-        securityEl.style.color = 'var(--success)';
+        if (avgScoreEl) avgScoreEl.textContent = '0%';
+        if (securityEl) {
+          securityEl.textContent = 'Secure';
+          securityEl.style.color = 'var(--success)';
+        }
         return;
       }
 
@@ -153,17 +155,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Update header cards
       const avgAccuracy = Math.round(totalPercentage / attempts.length);
-      avgScoreEl.textContent = `${avgAccuracy}%`;
+      if (avgScoreEl) avgScoreEl.textContent = `${avgAccuracy}%`;
 
-      if (securityFlagged) {
-        securityEl.textContent = 'Suspicious';
-        securityEl.style.color = 'var(--danger)';
-      } else if (totalViolations > 0) {
-        securityEl.textContent = 'Warning Flag';
-        securityEl.style.color = 'var(--warning)';
-      } else {
-        securityEl.textContent = 'Secure';
-        securityEl.style.color = 'var(--success)';
+      if (securityEl) {
+        if (securityFlagged) {
+          securityEl.textContent = 'Suspicious';
+          securityEl.style.color = 'var(--danger)';
+        } else if (totalViolations > 0) {
+          securityEl.textContent = 'Warning Flag';
+          securityEl.style.color = 'var(--warning)';
+        } else {
+          securityEl.textContent = 'Secure';
+          securityEl.style.color = 'var(--success)';
+        }
       }
 
     } catch (err) {

@@ -19,70 +19,108 @@
       </div>
     </div>
 
-    <!-- Admin Stats Overview -->
-    <div class="stats-grid">
-      <div class="stat-card glass">
-        <div class="stat-icon purple">👥</div>
-        <div class="stat-info">
-          <h3>Total Quiz Attempts</h3>
-          <p id="admin-stat-attempts">0</p>
+    <!-- Admin Tab Navigation -->
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" id="tab-admin-home">Dashboard Home</button>
+      <button type="button" class="admin-tab" id="tab-admin-results">Test Results</button>
+      <button type="button" class="admin-tab" id="tab-admin-manage">Manage Quizzes</button>
+    </div>
+
+    <!-- Panel 1: Dashboard Home -->
+    <div id="panel-admin-home" class="admin-panel active">
+      <!-- Admin Stats Overview -->
+      <div class="stats-grid">
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Total Quiz Attempts</h3>
+            <p id="admin-stat-attempts">0</p>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Average Quiz Accuracy</h3>
+            <p id="admin-stat-accuracy">0%</p>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Flagged Attempts</h3>
+            <p id="admin-stat-flagged">0</p>
+          </div>
         </div>
       </div>
-      <div class="stat-card glass">
-        <div class="stat-icon green">📈</div>
-        <div class="stat-info">
-          <h3>Average Quiz Accuracy</h3>
-          <p id="admin-stat-accuracy">0%</p>
-        </div>
-      </div>
-      <div class="stat-card glass">
-        <div class="stat-icon amber">🚨</div>
-        <div class="stat-info">
-          <h3>Flagged Attempts</h3>
-          <p id="admin-stat-flagged">0</p>
+
+      <!-- Welcome Overview Card -->
+      <div class="history-card glass" style="margin-top: 2rem;">
+        <h3>Portal Overview</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+          Welcome to the Administrator Control Portal. Use the tabs above to navigate between viewing student performance reports and managing quiz templates.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div style="background: var(--bg-secondary); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem; font-weight: 600;">Dashboard Home</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+              Monitor aggregated portal metrics including total quiz completion volume, average class accuracy, and flagged anomalous behavior instances.
+            </p>
+          </div>
+          <div style="background: var(--bg-secondary); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--success); margin-bottom: 0.5rem; font-weight: 600;">Test Results</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+              Inspect individual student examination scores, completion durations, security warnings, and detailed chronological tab-switch audit logs.
+            </p>
+          </div>
+          <div style="background: var(--bg-secondary); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--warning); margin-bottom: 0.5rem; font-weight: 600;">Manage Quizzes</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+              Configure daily scheduled quizzes, import multi-choice question items in bulk using CSV templates, or construct quizzes using the visual editor.
+            </p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Admin Content Grid -->
-    <div class="admin-grid">
-      
-      <!-- LEFT COLUMN: STUDENT RESULTS & CREATED QUIZZES -->
-      <div style="display: flex; flex-direction: column; gap: 2rem;">
-        
-        <div class="history-card glass">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
-            <h3 style="margin:0;">Student Progress & Proctor Audits</h3>
-            
-            <div style="display:flex; align-items:center; gap:0.6rem;">
-              <label for="admin-quiz-filter" style="font-size:0.85rem; color:var(--text-secondary); font-weight:500;">Filter by Test:</label>
-              <select id="admin-quiz-filter" class="input-control" style="padding:0.4rem 0.8rem; font-size:0.85rem; min-width:220px;">
-                <option value="all">-- All Conducted Tests --</option>
-              </select>
-            </div>
-          </div>
-          <div class="table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Quiz Name</th>
-                  <th>Score</th>
-                  <th>Time Taken</th>
-                  <th>Warnings</th>
-                  <th>Status</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody id="admin-attempts-table-body">
-                <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-muted);">Retrieving student results...</td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- Panel 2: Test Results -->
+    <div id="panel-admin-results" class="admin-panel">
+      <div class="history-card glass">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <h3 style="margin:0;">Student Progress & Proctor Audits</h3>
+          
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <label for="admin-quiz-filter" style="font-size:0.85rem; color:var(--text-secondary); font-weight:500;">Filter by Test:</label>
+            <select id="admin-quiz-filter" class="input-control" style="padding:0.4rem 0.8rem; font-size:0.85rem; min-width:220px;">
+              <option value="all">-- All Conducted Tests --</option>
+            </select>
           </div>
         </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Quiz Name</th>
+                <th>Score</th>
+                <th>Time Taken</th>
+                <th>Warnings</th>
+                <th>Status</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="admin-attempts-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Retrieving student results...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
+    <!-- Panel 3: Manage Quizzes -->
+    <div id="panel-admin-manage" class="admin-panel">
+      <!-- Admin Content Grid -->
+      <div class="admin-grid">
+        
+        <!-- LEFT COLUMN: ACTIVE & SCHEDULED QUIZZES -->
         <div class="history-card glass">
           <h3>Active & Scheduled Quizzes</h3>
           <div class="table-responsive">
@@ -106,85 +144,84 @@
           </div>
         </div>
 
-      </div>
-
-      <!-- RIGHT COLUMN: CREATE & ASSIGN QUIZ -->
-      <div class="admin-panel-card glass">
-        <h3>Assign / Create Quiz</h3>
-        
-        <div id="form-alert-box" style="display:none; padding:0.8rem; border-radius:12px; margin-bottom:1.2rem; font-size:0.9rem; font-weight:500; text-align:center;"></div>
-        
-        <form class="quiz-creator-form" id="quiz-creator-form">
-          <div class="form-group">
-            <label for="quiz-title">Quiz Title</label>
-            <input type="text" id="quiz-title" class="input-control" placeholder="e.g. Java Collection Framework MCQ" required>
-          </div>
+        <!-- RIGHT COLUMN: CREATE & ASSIGN QUIZ -->
+        <div class="admin-panel-card glass">
+          <h3>Assign / Create Quiz</h3>
           
-          <div class="form-group">
-            <label for="quiz-desc">Description</label>
-            <textarea id="quiz-desc" class="input-control" style="resize: vertical; min-height: 80px;" placeholder="Describe what the test evaluates..."></textarea>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div id="form-alert-box" style="display:none; padding:0.8rem; border-radius:12px; margin-bottom:1.2rem; font-size:0.9rem; font-weight:500; text-align:center;"></div>
+          
+          <form class="quiz-creator-form" id="quiz-creator-form">
             <div class="form-group">
-              <label for="quiz-time">Time Limit (Mins)</label>
-              <input type="number" id="quiz-time" class="input-control" value="30" min="1" required>
-            </div>
-            <div class="form-group">
-              <label for="quiz-date">Assign Date</label>
-              <input type="date" id="quiz-date" class="input-control" required>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
-            <div class="form-group">
-              <label for="quiz-start-time">Start Time</label>
-              <input type="time" id="quiz-start-time" class="input-control" value="00:00" required>
-            </div>
-            <div class="form-group">
-              <label for="quiz-end-time">End Time</label>
-              <input type="time" id="quiz-end-time" class="input-control" value="23:59" required>
-            </div>
-          </div>
-
-          <!-- CSV Bulk Upload Box -->
-          <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-              <h4 style="font-size:1rem; font-weight:600; color: var(--text-secondary);">Bulk CSV Import</h4>
-              <button type="button" id="btn-download-sample-csv" class="btn-secondary" style="padding:0.3rem 0.8rem; font-size:0.75rem; background:transparent;">
-                📥 Sample CSV Template
-              </button>
+              <label for="quiz-title">Quiz Title</label>
+              <input type="text" id="quiz-title" class="input-control" placeholder="e.g. Java Collection Framework MCQ" required>
             </div>
             
-            <div style="background:var(--bg-secondary); padding:1rem; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.6rem;">
-              <div style="display:flex; gap:0.5rem; align-items:center;">
-                <input type="file" id="quiz-csv-file" accept=".csv" class="input-control" style="font-size:0.85rem; padding:0.4rem; flex:1;">
-                <button type="button" id="btn-import-csv" class="btn-secondary" style="padding:0.5rem 1rem; font-size:0.85rem; background:var(--primary); color:white; border:none;">
-                  Parse & Load CSV
+            <div class="form-group">
+              <label for="quiz-desc">Description</label>
+              <textarea id="quiz-desc" class="input-control" style="resize: vertical; min-height: 80px;" placeholder="Describe what the test evaluates..."></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="quiz-time">Time Limit (Mins)</label>
+                <input type="number" id="quiz-time" class="input-control" value="30" min="1" required>
+              </div>
+              <div class="form-group">
+                <label for="quiz-date">Assign Date</label>
+                <input type="date" id="quiz-date" class="input-control" required>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+              <div class="form-group">
+                <label for="quiz-start-time">Start Time</label>
+                <input type="time" id="quiz-start-time" class="input-control" value="00:00" required>
+              </div>
+              <div class="form-group">
+                <label for="quiz-end-time">End Time</label>
+                <input type="time" id="quiz-end-time" class="input-control" value="23:59" required>
+              </div>
+            </div>
+
+            <!-- CSV Bulk Upload Box -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                <h4 style="font-size:1rem; font-weight:600; color: var(--text-secondary);">Bulk CSV Import</h4>
+                <button type="button" id="btn-download-sample-csv" class="btn-secondary" style="padding:0.3rem 0.8rem; font-size:0.75rem; background:transparent;">
+                  Download Sample CSV Template
                 </button>
               </div>
-              <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
-                Headers: <code>Question, Option A, Option B, Option C, Option D, Correct Option, Explanation, Is Code</code>
-              </p>
+              
+              <div style="background:var(--bg-secondary); padding:1rem; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; gap:0.6rem;">
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                  <input type="file" id="quiz-csv-file" accept=".csv" class="input-control" style="font-size:0.85rem; padding:0.4rem; flex:1;">
+                  <button type="button" id="btn-import-csv" class="btn-secondary" style="padding:0.5rem 1rem; font-size:0.85rem; background:var(--primary); color:white; border:none;">
+                    Parse & Load CSV
+                  </button>
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
+                  Headers: <code>Question, Option A, Option B, Option C, Option D, Correct Option, Explanation, Is Code</code>
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1.5rem;">
-            <h4 style="font-size:1rem; font-weight:600; margin-bottom:1rem; color: var(--text-secondary);">Questions Editor:</h4>
-            
-            <div id="questions-builder-container" style="display:flex; flex-direction:column; gap:1.2rem; margin-bottom: 1.5rem;">
-              <!-- Dynamic Question Builder Cards Pushed Here -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1.5rem;">
+              <h4 style="font-size:1rem; font-weight:600; margin-bottom:1rem; color: var(--text-secondary);">Questions Editor:</h4>
+              
+              <div id="questions-builder-container" style="display:flex; flex-direction:column; gap:1.2rem; margin-bottom: 1.5rem;">
+                <!-- Dynamic Question Builder Cards Pushed Here -->
+              </div>
+
+              <button type="button" class="btn-secondary" id="btn-add-question-form" style="width: 100%; border-style: dashed;">
+                Add Question Fields
+              </button>
             </div>
 
-            <button type="button" class="btn-secondary" id="btn-add-question-form" style="width: 100%; border-style: dashed;">
-              ➕ Add Question Fields
-            </button>
-          </div>
+            <button type="submit" class="btn-submit" style="width:100%; margin-top:1.5rem;">Assign and Save Quiz</button>
+          </form>
+        </div>
 
-          <button type="submit" class="btn-submit" style="width:100%; margin-top:1.5rem;">Assign and Save Quiz</button>
-        </form>
       </div>
-
     </div>
   </div>
 

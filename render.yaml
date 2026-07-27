@@ -12,3 +12,6 @@ services:
         value: mongodb+srv://reksitrajan01:8n4SHiaJfCZRrimg@cluster0.mperr.mongodb.net/proctorapp?retryWrites=true&w=majority
       - key: JWT_SECRET
         value: super_secret_java_oop_proctor_quiz_key_2026
+      - key: ADMIN_SECRET
+        value: admin123
+

@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
       navContainer.innerHTML = `
         <nav class="navbar">
           <div class="nav-brand">
-            <span style="font-size: 1.8rem; vertical-align: middle;">🛡️</span>
             <span class="text-gradient">PROCTOR SHIELD</span>
           </div>
           <div class="nav-user">

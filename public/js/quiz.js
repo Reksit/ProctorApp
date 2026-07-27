@@ -70,14 +70,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Initialize Camera Permissions Check ---
   try {
-    webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    checkCamStatus.textContent = 'Active & Secure ✅';
+    webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    webcamElement.srcObject = webcamStream;
+    checkCamStatus.textContent = 'Active & Secure';
     checkCamStatus.style.color = 'var(--success)';
     initExamBtn.disabled = false;
     initExamBtn.className = 'btn-start-quiz';
   } catch (err) {
-    console.warn('Webcam permission denied or unavailable:', err);
-    checkCamStatus.textContent = 'Simulated feed fallback active ⚠️';
+    console.warn('Webcam permission denied or unavailable. Fallback to simulation mode.');
+    checkCamStatus.textContent = 'Simulated feed fallback active';
     checkCamStatus.style.color = 'var(--warning)';
     
     // Still allow the exam for testing, but simulate camera failure
@@ -217,10 +218,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Flag State Check
     if (flagged[currentQuestionIndex]) {
       btnFlagQuestion.classList.add('flagged');
-      btnFlagQuestion.innerHTML = '🚩 Flagged';
+      btnFlagQuestion.innerHTML = 'Flagged';
     } else {
       btnFlagQuestion.classList.remove('flagged');
-      btnFlagQuestion.innerHTML = '🏳️ Flag for Review';
+      btnFlagQuestion.innerHTML = 'Flag for Review';
     }
 
     // Options Rendering
@@ -384,7 +385,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   function bindProctoringEvents() {
     // 1. Tab Switch / Minimize detection (Capture phase binding)
     _realAddEventListener.call(document, 'visibilitychange', handleVisibilityChange, true);
-    _realAddEventListener.call(window, 'blur', handleWindowBlur, true);
 
     // 2. Fullscreen escape detection
     _realAddEventListener.call(document, 'fullscreenchange', handleFullscreenChange, true);
@@ -403,14 +403,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 6. Anti-Tamper & Extension Spoofing Scanner
     startAntiTamperScanner();
-
-    // 7. Browser Rendering Engine Throttle Detector (Alt+Tab / Background Tab)
-    startRafThrottleDetector();
   }
 
   function unbindProctoringEvents() {
     _realRemoveEventListener.call(document, 'visibilitychange', handleVisibilityChange, true);
-    _realRemoveEventListener.call(window, 'blur', handleWindowBlur, true);
     _realRemoveEventListener.call(document, 'fullscreenchange', handleFullscreenChange, true);
     _realRemoveEventListener.call(document, 'webkitfullscreenchange', handleFullscreenChange, true);
     _realRemoveEventListener.call(document, 'contextmenu', blockRightClick, true);
@@ -420,11 +416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     _realRemoveEventListener.call(document, 'selectstart', blockTextSelection, true);
 
     if (antiTamperInterval) clearInterval(antiTamperInterval);
-    if (rafId) cancelAnimationFrame(rafId);
   }
-
-  // --- ANTI-EXTENSION SCRIPT INJECTION SCANNER ---
-  let antiTamperInterval = null;
 
   function startAntiTamperScanner() {
     antiTamperInterval = setInterval(() => {
@@ -441,39 +433,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       } catch (e) {}
-
-      try {
-        // Verify native window focus vs document state
-        const nativeFocus = _realHasFocus.call(document);
-        const isDocHidden = document.hidden || document.visibilityState === 'hidden';
-
-        if (!nativeFocus && !isDocHidden && document.activeElement && document.activeElement.tagName !== 'IFRAME') {
-          logViolation('Focus Anomaly', 'Window focus lost despite extension state suppression.');
-        }
-      } catch (e) {}
     }, 1500);
   }
 
-  // --- BROWSER ENGINE THROTTLE DETECTOR (Un-spoofable Alt+Tab / Background Detector) ---
-  let lastFrameTime = performance.now();
-  let rafId = null;
-
-  function startRafThrottleDetector() {
-    function checkFrame(now) {
-      if (quizStarted && !quizSubmitted) {
-        const delta = now - lastFrameTime;
-        // Browsers throttle rAF loop when switching windows/tabs (from 60fps to ~0.5fps).
-        // If time delta > 1.8 seconds, the user switched windows!
-        if (delta > 1800) {
-          logViolation('Background Tab Throttle', 'Browser engine background throttling detected (Alt+Tab / Tab Switch).');
-        }
-        lastFrameTime = now;
-      }
-      rafId = requestAnimationFrame(checkFrame);
-    }
-    lastFrameTime = performance.now();
-    rafId = requestAnimationFrame(checkFrame);
-  }
 
   // Warning Modal Actions
   btnDismissWarning.addEventListener('click', async () => {
@@ -560,15 +522,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function handleWindowBlur(e) {
-    if (quizSubmitted || !quizStarted) return;
-    
-    // Ignore iframe clicks
-    if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
-
-    // Direct window blur event means user Alt+Tabbed or switched window focus!
-    logViolation('Window Focus Lost (Alt+Tab)', 'User switched focus away from the exam window (Alt+Tab / Task Switch).');
-  }
 
   function handleFullscreenChange() {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
@@ -583,13 +536,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function blockDevToolsKeys(e) {
-    // Detect Alt+Tab, Meta+Tab, Alt+Esc, Ctrl+Tab
-    if ((e.altKey && e.key === 'Tab') || (e.metaKey && e.key === 'Tab') || (e.ctrlKey && e.key === 'Tab') || e.key === 'Alt') {
-      e.preventDefault();
-      logViolation('Alt+Tab Intercepted', 'User attempted window navigation via Alt+Tab shortcut.');
-      return;
-    }
-
     const forbiddenKeys = ['F12'];
     const ctrlShiftKeys = ['I', 'i', 'J', 'j', 'C', 'c'];
     
@@ -770,24 +716,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         q.options.forEach((opt, oIdx) => {
           const optDiv = document.createElement('div');
+          let tag = '';
           let optClass = 'review-option';
 
           if (oIdx === q.correctAnswer) {
+            tag = ' [Correct Answer]';
             optClass += ' correct-option';
           } else if (oIdx === q.studentAnswer && !q.isCorrect) {
+            tag = ' [Your Answer - Incorrect]';
             optClass += ' incorrect-selected';
           } else if (oIdx === q.studentAnswer) {
+            tag = ' [Your Answer - Correct]';
             optClass += ' student-selected';
           }
 
           optDiv.className = optClass;
-          
-          let checkmark = '';
-          if (oIdx === q.correctAnswer) checkmark = ' ✓ (Correct Answer)';
-          if (oIdx === q.studentAnswer && !q.isCorrect) checkmark = ' ✗ (Your Answer)';
-          if (oIdx === q.studentAnswer && q.isCorrect) checkmark = ' ✓ (Your Answer)';
-
-          optDiv.textContent = `${String.fromCharCode(65 + oIdx)}) ${opt}${checkmark}`;
+          optDiv.textContent = `${String.fromCharCode(65 + oIdx)}) ${opt}${tag}`;
           optionsDiv.appendChild(optDiv);
         });
 
