@@ -141,63 +141,65 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 
 // --- QUIZ ROUTES ---
 
-// Get today's assigned quiz for students
+// Get today's assigned quizzes for students
 app.get('/api/quizzes/today', authenticateToken, async (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     
-    // Find quiz active and assigned to today
-    let quiz = await Quiz.findOne({ assignedDate: todayStr, isActive: true });
+    // Find all quizzes active and assigned to today
+    let quizzes = await Quiz.find({ assignedDate: todayStr, isActive: true });
     
-    // If no quiz assigned to today specifically, find any active quiz as a fallback
-    if (!quiz) {
-      quiz = await Quiz.findOne({ isActive: true }).sort({ createdAt: -1 });
+    // If no quizzes assigned to today specifically, find active quizzes as a fallback
+    if (!quizzes || quizzes.length === 0) {
+      quizzes = await Quiz.find({ isActive: true }).sort({ createdAt: -1 });
     }
 
-    if (!quiz) {
-      return res.status(404).json({ message: 'No active quiz available at the moment' });
+    if (!quizzes || quizzes.length === 0) {
+      return res.status(404).json({ message: 'No active quizzes available at the moment' });
     }
 
-    // Check if the student has already attempted this quiz
-    const attempt = await Attempt.findOne({ student: req.user.id, quiz: quiz._id });
-    
-    // Time constraints checks
     const now = new Date();
     const currentHours = now.getHours().toString().padStart(2, '0');
     const currentMins = now.getMinutes().toString().padStart(2, '0');
     const currentTimeStr = `${currentHours}:${currentMins}`;
 
-    let isLocked = false;
-    let lockReason = '';
+    // Process attempt status and time locks for each quiz in parallel
+    const quizList = await Promise.all(quizzes.map(async (quiz) => {
+      // Check if the student has already attempted this specific quiz
+      const attempt = await Attempt.findOne({ student: req.user.id, quiz: quiz._id });
+      
+      let isLocked = false;
+      let lockReason = '';
 
-    if (quiz.assignedDate === todayStr) {
-      if (quiz.startTime && currentTimeStr < quiz.startTime) {
-        isLocked = true;
-        lockReason = `Exam window has not opened yet. Starts at ${quiz.startTime}.`;
-      } else if (quiz.endTime && currentTimeStr > quiz.endTime) {
-        isLocked = true;
-        lockReason = `Exam window has closed. The test ended at ${quiz.endTime}.`;
+      if (quiz.assignedDate === todayStr) {
+        if (quiz.startTime && currentTimeStr < quiz.startTime) {
+          isLocked = true;
+          lockReason = `Exam window has not opened yet. Starts at ${quiz.startTime}.`;
+        } else if (quiz.endTime && currentTimeStr > quiz.endTime) {
+          isLocked = true;
+          lockReason = `Exam window has closed. The test ended at ${quiz.endTime}.`;
+        }
       }
-    }
 
-    res.json({
-      quiz: {
+      return {
         id: quiz._id,
         title: quiz.title,
         description: quiz.description,
         timeLimit: quiz.timeLimit,
         totalQuestions: quiz.questions.length,
         startTime: quiz.startTime,
-        endTime: quiz.endTime
-      },
-      alreadyAttempted: !!attempt,
-      attemptDetails: attempt,
-      isLocked,
-      lockReason
-    });
+        endTime: quiz.endTime,
+        alreadyAttempted: !!attempt,
+        attemptDetails: attempt,
+        isLocked,
+        lockReason
+      };
+    }));
+
+    res.json(quizList);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error fetching daily quiz' });
+    res.status(500).json({ message: 'Server error fetching daily quizzes' });
   }
 });
 
@@ -363,6 +365,34 @@ app.get('/api/admin/quizzes', authenticateToken, requireAdmin, async (req, res) 
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error loading quizzes' });
+  }
+});
+
+// Delete a quiz
+app.delete('/api/admin/quizzes/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const quizId = req.params.id;
+    const quiz = await Quiz.findByIdAndDelete(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+    // Clean up attempts associated with this quiz
+    await Attempt.deleteMany({ quiz: quizId });
+    res.json({ message: 'Quiz and associated attempts deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error deleting quiz' });
+  }
+});
+
+// Get all registered students
+app.get('/api/admin/students', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const students = await User.find({ role: 'student' }).select('-password').sort({ createdAt: -1 });
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error loading student list' });
   }
 });
 

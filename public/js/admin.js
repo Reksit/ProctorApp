@@ -5,15 +5,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- ADMIN TABS NAVIGATION LOGIC ---
   const tabHome = document.getElementById('tab-admin-home');
+  const tabStudents = document.getElementById('tab-admin-students');
   const tabResults = document.getElementById('tab-admin-results');
   const tabManage = document.getElementById('tab-admin-manage');
 
   const panelHome = document.getElementById('panel-admin-home');
+  const panelStudents = document.getElementById('panel-admin-students');
   const panelResults = document.getElementById('panel-admin-results');
   const panelManage = document.getElementById('panel-admin-manage');
 
-  const tabs = [tabHome, tabResults, tabManage];
-  const panels = [panelHome, panelResults, panelManage];
+  const tabs = [tabHome, tabStudents, tabResults, tabManage];
+  const panels = [panelHome, panelStudents, panelResults, panelManage];
 
   tabs.forEach((tab, index) => {
     if (tab) {
@@ -524,7 +526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (quizzes.length === 0) {
         quizzesTableBody.innerHTML = `
           <tr>
-            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No quizzes created yet.</td>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No quizzes created yet.</td>
           </tr>
         `;
         return;
@@ -567,6 +569,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td>${quiz.questions.length} questions</td>
             <td>${quiz.timeLimit} mins</td>
             <td>${statusText}</td>
+            <td>
+              <button class="btn-logout" style="padding:0.2rem 0.6rem; font-size:0.8rem; margin:0;" onclick="deleteQuiz('${quiz._id}')">Delete</button>
+            </td>
           </tr>
         `;
       });
@@ -574,7 +579,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error(err);
       quizzesTableBody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">Error: ${err.message}</td>
+          <td colspan="7" style="text-align: center; color: var(--danger); padding: 2rem;">Error: ${err.message}</td>
         </tr>
       `;
     }
@@ -592,7 +597,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Exposed globally to delete a quiz
+  window.deleteQuiz = async (quizId) => {
+    if (!confirm('Are you sure you want to delete this quiz? This will also permanently delete all student attempts logged for this quiz.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/quizzes/${quizId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete quiz');
+
+      alert('Quiz deleted successfully!');
+      
+      // Refresh both student progress logs and quizzes list
+      await loadStudentAttempts();
+      await loadQuizzes();
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  // --- FETCH REGISTERED STUDENTS ---
+  async function loadRegisteredStudents() {
+    const studentsTableBody = document.getElementById('admin-students-table-body');
+    if (!studentsTableBody) return;
+
+    try {
+      const res = await fetch('/api/admin/students', {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Could not load students');
+      const students = await res.json();
+
+      if (students.length === 0) {
+        studentsTableBody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">No students registered yet.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      studentsTableBody.innerHTML = '';
+      students.forEach(student => {
+        const regDateStr = new Date(student.createdAt).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        studentsTableBody.innerHTML += `
+          <tr>
+            <td><strong>${student.username}</strong></td>
+            <td>${student.email}</td>
+            <td>${regDateStr}</td>
+          </tr>
+        `;
+      });
+    } catch (err) {
+      console.error(err);
+      studentsTableBody.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align: center; color: var(--danger); padding: 2rem;">Error: ${err.message}</td>
+        </tr>
+      `;
+    }
+  }
+
   // Run initial dashboard load
   await loadStudentAttempts();
   await loadQuizzes();
+  await loadRegisteredStudents();
 });

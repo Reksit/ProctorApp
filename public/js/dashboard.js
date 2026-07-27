@@ -8,65 +8,76 @@ document.addEventListener('DOMContentLoaded', async () => {
   const securityEl = document.getElementById('stat-security-status');
   const tableBody = document.getElementById('attempts-table-body');
 
-  const quizTitleEl = document.getElementById('active-quiz-title');
-  const quizDescEl = document.getElementById('active-quiz-desc');
-  const quizLimitEl = document.getElementById('active-quiz-limit');
-  const quizQuestionsEl = document.getElementById('active-quiz-questions');
-  const startBtn = document.getElementById('btn-start-exam');
+  // 1. Fetch Today's Quizzes
+  async function loadActiveQuizzes() {
+    const quizzesListEl = document.getElementById('active-quizzes-list');
+    if (!quizzesListEl) return;
 
-  let activeQuizId = null;
-
-  // 1. Fetch Today's Quiz
-  async function loadActiveQuiz() {
     try {
       const res = await fetch('/api/quizzes/today', {
         headers: getAuthHeaders()
       });
-      const data = await res.json();
-
+      
       if (!res.ok) {
         if (res.status === 404) {
-          quizTitleEl.textContent = 'No Exams Assigned Today';
-          quizDescEl.textContent = 'You are all caught up! Check back later when your proctor assigns a new quiz.';
-          quizLimitEl.style.display = 'none';
-          quizQuestionsEl.style.display = 'none';
-          startBtn.style.display = 'none';
+          quizzesListEl.innerHTML = `
+            <div class="quiz-banner-card glass">
+              <div class="quiz-banner-content">
+                <span class="quiz-tag">Info</span>
+                <h3>No Exams Assigned Today</h3>
+                <p>You are all caught up! Check back later when your proctor assigns a new quiz.</p>
+              </div>
+            </div>
+          `;
           return;
         }
-        throw new Error(data.message || 'Failed to check active quiz');
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to check active quizzes');
       }
 
-      const { quiz, alreadyAttempted, isLocked, lockReason } = data;
-      activeQuizId = quiz.id;
+      const quizzes = await res.json();
+      quizzesListEl.innerHTML = '';
 
-      quizTitleEl.textContent = quiz.title;
-      quizDescEl.textContent = quiz.description || 'No description provided.';
-      quizLimitEl.innerHTML = `Time Limit: <strong>${quiz.timeLimit}</strong> mins`;
-      quizQuestionsEl.innerHTML = `Questions: <strong>${quiz.totalQuestions}</strong>`;
+      quizzes.forEach(quiz => {
+        let actionBtnHtml = '';
+        let descHtml = quiz.description || 'No description provided.';
 
-      if (alreadyAttempted) {
-        startBtn.textContent = 'Exam Completed';
-        startBtn.className = 'btn-start-quiz btn-disabled';
-        startBtn.disabled = true;
-      } else if (isLocked) {
-        startBtn.textContent = 'Exam Locked';
-        startBtn.className = 'btn-start-quiz btn-disabled';
-        startBtn.disabled = true;
-        quizDescEl.innerHTML = `<span style="color: var(--warning); font-weight:600;">Locked: ${lockReason}</span><br><br>${quiz.description || ''}`;
-      } else {
-        startBtn.textContent = 'Start Secure Exam';
-        startBtn.className = 'btn-start-quiz';
-        startBtn.disabled = false;
-        
-        startBtn.addEventListener('click', () => {
-          // Redirect to the exam view with quiz ID
-          window.location.href = `/quiz.html?id=${activeQuizId}`;
-        });
-      }
+        if (quiz.alreadyAttempted) {
+          actionBtnHtml = `<button class="btn-start-quiz btn-disabled" disabled>Exam Completed</button>`;
+        } else if (quiz.isLocked) {
+          actionBtnHtml = `<button class="btn-start-quiz btn-disabled" disabled>Exam Locked</button>`;
+          descHtml = `<span style="color: var(--warning); font-weight:600;">Locked: ${quiz.lockReason}</span><br><br>${descHtml}`;
+        } else {
+          actionBtnHtml = `<button class="btn-start-quiz" onclick="window.location.href='/quiz.html?id=${quiz.id}'">Start Secure Exam</button>`;
+        }
+
+        quizzesListEl.innerHTML += `
+          <div class="quiz-banner-card glass">
+            <div class="quiz-banner-content">
+              <span class="quiz-tag">Assigned Exam</span>
+              <h3>${quiz.title}</h3>
+              <p>${descHtml}</p>
+              <div class="quiz-meta-info">
+                <span>Time Limit: <strong>${quiz.timeLimit}</strong> mins</span>
+                <span>Questions: <strong>${quiz.totalQuestions}</strong> questions</span>
+              </div>
+            </div>
+            ${actionBtnHtml}
+          </div>
+        `;
+      });
+
     } catch (err) {
       console.error(err);
-      quizTitleEl.textContent = 'Failed to load assigned quiz';
-      quizDescEl.textContent = err.message;
+      quizzesListEl.innerHTML = `
+        <div class="quiz-banner-card glass">
+          <div class="quiz-banner-content">
+            <span class="quiz-tag" style="background:var(--danger-bg); border-color:var(--danger); color:var(--danger);">Error</span>
+            <h3>Failed to load assigned quizzes</h3>
+            <p>${err.message}</p>
+          </div>
+        </div>
+      `;
     }
   }
 
@@ -181,6 +192,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Load dashboards details
-  await loadActiveQuiz();
+  await loadActiveQuizzes();
   await loadHistory();
 });

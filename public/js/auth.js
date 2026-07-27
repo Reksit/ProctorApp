@@ -117,4 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert(err.message);
     }
   });
+
+  // --- PASSWORD VISIBILITY TOGGLE LOGIC ---
+  const toggleButtons = document.querySelectorAll('.toggle-password-btn');
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+
+      const eyeOpenIcon = btn.querySelector('.eye-icon-open');
+      const eyeClosedIcon = btn.querySelector('.eye-icon-closed');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (eyeOpenIcon) eyeOpenIcon.style.display = 'none';
+        if (eyeClosedIcon) eyeClosedIcon.style.display = 'block';
+      } else {
+        input.type = 'password';
+        if (eyeOpenIcon) eyeOpenIcon.style.display = 'block';
+        if (eyeClosedIcon) eyeClosedIcon.style.display = 'none';
+      }
+    });
+  });
 });

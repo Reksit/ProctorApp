@@ -31,17 +31,13 @@
 
     <!-- Active Quiz Assignment Panel -->
     <div class="quiz-assignment-section">
-      <div class="quiz-banner-card glass" id="active-quiz-container">
-        <div class="quiz-banner-content">
-          <span class="quiz-tag">Assigned Exam</span>
-          <h3 id="active-quiz-title">Loading assigned quiz...</h3>
-          <p id="active-quiz-desc">Retrieving exam details from the secure server...</p>
-          <div class="quiz-meta-info">
-            <span id="active-quiz-limit">Time Limit: -- mins</span>
-            <span id="active-quiz-questions">Total Questions: -- questions</span>
+      <h3>Today's Assigned Examinations</h3>
+      <div id="active-quizzes-list" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+        <div class="quiz-banner-card glass">
+          <div class="quiz-banner-content">
+            <p>Loading assigned quizzes...</p>
           </div>
         </div>
-        <button id="btn-start-exam" class="btn-start-quiz btn-disabled" disabled>Start Secure Exam</button>
       </div>
     </div>
 

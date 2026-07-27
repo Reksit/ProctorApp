@@ -22,6 +22,7 @@
     <!-- Admin Tab Navigation -->
     <div class="admin-tabs">
       <button type="button" class="admin-tab active" id="tab-admin-home">Dashboard Home</button>
+      <button type="button" class="admin-tab" id="tab-admin-students">Registered Students</button>
       <button type="button" class="admin-tab" id="tab-admin-results">Test Results</button>
       <button type="button" class="admin-tab" id="tab-admin-manage">Manage Quizzes</button>
     </div>
@@ -79,7 +80,30 @@
       </div>
     </div>
 
-    <!-- Panel 2: Test Results -->
+    <!-- Panel 2: Registered Students -->
+    <div id="panel-admin-students" class="admin-panel">
+      <div class="history-card glass">
+        <h3>Registered Students</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email Address</th>
+                <th>Registered On</th>
+              </tr>
+            </thead>
+            <tbody id="admin-students-table-body">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted);">Retrieving student list...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Test Results -->
     <div id="panel-admin-results" class="admin-panel">
       <div class="history-card glass">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
@@ -133,11 +157,12 @@
                   <th>Questions</th>
                   <th>Time Limit</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="admin-quizzes-table-body">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: var(--text-muted);">Retrieving quizzes...</td>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted);">Retrieving quizzes...</td>
                 </tr>
               </tbody>
             </table>
