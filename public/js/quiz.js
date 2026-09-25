@@ -126,8 +126,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       flagged = new Array(numQuestions).fill(false);
       visited = new Array(numQuestions).fill(false);
       visited[0] = true;
-      
-      timeLeft = quizData.timeLimit * 60; // Convert to seconds
+
+      timeLeft = quizData.time_limit * 60; // Convert to seconds
       startTime = new Date();
       quizStarted = true;
 

@@ -78,11 +78,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = getUser();
     if (user) {
       const badgeClass = user.role === 'admin' ? 'badge-admin' : 'badge-student';
+
+      // For admin users, add tabs in the navbar
+      const adminTabsHTML = user.role === 'admin' ? `
+        <div class="nav-tabs">
+          <button type="button" class="nav-tab active" id="tab-admin-home">Dashboard Home</button>
+          <button type="button" class="nav-tab" id="tab-admin-students">Registered Students</button>
+          <button type="button" class="nav-tab" id="tab-admin-results">Test Results</button>
+          <button type="button" class="nav-tab" id="tab-admin-view">View Quizzes</button>
+          <button type="button" class="nav-tab" id="tab-admin-create">Create Quiz</button>
+        </div>
+      ` : '';
+
+      // For student users, add tabs in the navbar
+      const studentTabsHTML = user.role === 'student' ? `
+        <div class="nav-tabs">
+          <button type="button" class="nav-tab active" id="tab-student-dashboard">Dashboard</button>
+          <button type="button" class="nav-tab" id="tab-student-performance">Performance Records</button>
+        </div>
+      ` : '';
+
       navContainer.innerHTML = `
         <nav class="navbar">
           <div class="nav-brand">
             <span class="text-gradient">PROCTOR SHIELD</span>
           </div>
+          ${adminTabsHTML}
+          ${studentTabsHTML}
           <div class="nav-user">
             <span style="color: var(--text-secondary); font-weight: 500;">Hello, <strong>${user.username}</strong></span>
             <span class="badge ${badgeClass}">${user.role}</span>

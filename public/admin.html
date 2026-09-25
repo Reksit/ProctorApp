@@ -19,14 +19,6 @@
       </div>
     </div>
 
-    <!-- Admin Tab Navigation -->
-    <div class="admin-tabs">
-      <button type="button" class="admin-tab active" id="tab-admin-home">Dashboard Home</button>
-      <button type="button" class="admin-tab" id="tab-admin-students">Registered Students</button>
-      <button type="button" class="admin-tab" id="tab-admin-results">Test Results</button>
-      <button type="button" class="admin-tab" id="tab-admin-manage">Manage Quizzes</button>
-    </div>
-
     <!-- Panel 1: Dashboard Home -->
     <div id="panel-admin-home" class="admin-panel active">
       <!-- Admin Stats Overview -->
@@ -71,9 +63,15 @@
             </p>
           </div>
           <div style="background: var(--bg-secondary); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color);">
-            <h4 style="color: var(--warning); margin-bottom: 0.5rem; font-weight: 600;">Manage Quizzes</h4>
+            <h4 style="color: var(--warning); margin-bottom: 0.5rem; font-weight: 600;">View Quizzes</h4>
             <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
-              Configure daily scheduled quizzes, import multi-choice question items in bulk using CSV templates, or construct quizzes using the visual editor.
+              Browse all active and scheduled quizzes, review assignment dates, time windows, and manage quiz availability status.
+            </p>
+          </div>
+          <div style="background: var(--bg-secondary); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem; font-weight: 600;">Create Quiz</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+              Configure new quizzes with custom schedules, import questions via CSV templates, or use the visual question builder.
             </p>
           </div>
         </div>
@@ -139,38 +137,36 @@
       </div>
     </div>
 
-    <!-- Panel 3: Manage Quizzes -->
-    <div id="panel-admin-manage" class="admin-panel">
-      <!-- Admin Content Grid -->
-      <div class="admin-grid">
-        
-        <!-- LEFT COLUMN: ACTIVE & SCHEDULED QUIZZES -->
-        <div class="history-card glass">
-          <h3>Active & Scheduled Quizzes</h3>
-          <div class="table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Quiz Title</th>
-                  <th>Assigned Date</th>
-                  <th>Active Hours</th>
-                  <th>Questions</th>
-                  <th>Time Limit</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="admin-quizzes-table-body">
-                <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-muted);">Retrieving quizzes...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- Panel 4: View Quizzes -->
+    <div id="panel-admin-view" class="admin-panel">
+      <div class="history-card glass">
+        <h3>Active & Scheduled Quizzes</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Quiz Title</th>
+                <th>Assigned Date</th>
+                <th>Active Hours</th>
+                <th>Questions</th>
+                <th>Time Limit</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-quizzes-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Retrieving quizzes...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+    </div>
 
-        <!-- RIGHT COLUMN: CREATE & ASSIGN QUIZ -->
-        <div class="admin-panel-card glass">
+    <!-- Panel 5: Create Quiz -->
+    <div id="panel-admin-create" class="admin-panel">
+      <div class="admin-panel-card glass" style="max-width: 900px; margin: 0 auto;">
           <h3>Assign / Create Quiz</h3>
           
           <div id="form-alert-box" style="display:none; padding:0.8rem; border-radius:12px; margin-bottom:1.2rem; font-size:0.9rem; font-weight:500; text-align:center;"></div>
@@ -244,8 +240,6 @@
 
             <button type="submit" class="btn-submit" style="width:100%; margin-top:1.5rem;">Assign and Save Quiz</button>
           </form>
-        </div>
-
       </div>
     </div>
   </div>

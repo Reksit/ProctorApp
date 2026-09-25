@@ -19,49 +19,101 @@
       </div>
     </div>
 
-    <!-- Student Stats Overview Grid -->
-    <div class="stats-grid">
-      <div class="stat-card glass">
-        <div class="stat-info">
-          <h3>Total Quizzes Taken</h3>
-          <p id="stat-total-quizzes">0</p>
+    <!-- Panel 1: Dashboard - Test Tabs -->
+    <div id="panel-student-dashboard" class="admin-panel active">
+      <!-- Test Category Tabs -->
+      <div class="test-tabs">
+        <button id="tab-today-tests" class="test-tab-btn active">
+          Today's Tests
+        </button>
+        <button id="tab-upcoming-tests" class="test-tab-btn">
+          Upcoming Tests
+        </button>
+        <button id="tab-missed-tests" class="test-tab-btn">
+          Missed Tests
+        </button>
+      </div>
+
+      <!-- Today's Tests Tab Content -->
+      <div id="content-today-tests" class="test-tab-content active">
+        <div id="today-quizzes-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="quiz-banner-card glass">
+            <div class="quiz-banner-content">
+              <p>Loading today's tests...</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Active Quiz Assignment Panel -->
-    <div class="quiz-assignment-section">
-      <h3>Today's Assigned Examinations</h3>
-      <div id="active-quizzes-list" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
-        <div class="quiz-banner-card glass">
-          <div class="quiz-banner-content">
-            <p>Loading assigned quizzes...</p>
+      <!-- Upcoming Tests Tab Content -->
+      <div id="content-upcoming-tests" class="test-tab-content" style="display: none;">
+        <div id="upcoming-quizzes-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="quiz-banner-card glass">
+            <div class="quiz-banner-content">
+              <p>Loading upcoming tests...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Missed Tests Tab Content -->
+      <div id="content-missed-tests" class="test-tab-content" style="display: none;">
+        <div id="missed-quizzes-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="quiz-banner-card glass">
+            <div class="quiz-banner-content">
+              <p>Loading missed tests...</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Historical Performance Card -->
-    <div class="history-card glass">
-      <h3>Historical Performance Records</h3>
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Exam Name</th>
-              <th>Date Attempted</th>
-              <th>Duration</th>
-              <th>Score (Accuracy)</th>
-              <th>Security Level</th>
-              <th>Proctor Status</th>
-            </tr>
-          </thead>
-          <tbody id="attempts-table-body">
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted);">Retrieving attempt history...</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Panel 2: Performance Records - Stats + History -->
+    <div id="panel-student-performance" class="admin-panel">
+      <!-- Student Stats Overview Grid -->
+      <div class="stats-grid">
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Total Quizzes Taken</h3>
+            <p id="stat-total-quizzes">0</p>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Average Score</h3>
+            <p id="stat-avg-score">0%</p>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-info">
+            <h3>Security Status</h3>
+            <p id="stat-security-status">Secure</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical Performance Card -->
+      <div class="history-card glass">
+        <h3>Historical Performance Records</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Exam Name</th>
+                <th>Date Attempted</th>
+                <th>Duration</th>
+                <th>Score (Accuracy)</th>
+                <th>Security Level</th>
+                <th>Proctor Status</th>
+              </tr>
+            </thead>
+            <tbody id="attempts-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted);">Retrieving attempt history...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

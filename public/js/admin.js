@@ -4,18 +4,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!user) return;
 
   // --- ADMIN TABS NAVIGATION LOGIC ---
+  // Wait a bit for navbar tabs to be created by utils.js
+  await new Promise(resolve => setTimeout(resolve, 50));
+
   const tabHome = document.getElementById('tab-admin-home');
   const tabStudents = document.getElementById('tab-admin-students');
   const tabResults = document.getElementById('tab-admin-results');
-  const tabManage = document.getElementById('tab-admin-manage');
+  const tabView = document.getElementById('tab-admin-view');
+  const tabCreate = document.getElementById('tab-admin-create');
 
   const panelHome = document.getElementById('panel-admin-home');
   const panelStudents = document.getElementById('panel-admin-students');
   const panelResults = document.getElementById('panel-admin-results');
-  const panelManage = document.getElementById('panel-admin-manage');
+  const panelView = document.getElementById('panel-admin-view');
+  const panelCreate = document.getElementById('panel-admin-create');
 
-  const tabs = [tabHome, tabStudents, tabResults, tabManage];
-  const panels = [panelHome, panelStudents, panelResults, panelManage];
+  const tabs = [tabHome, tabStudents, tabResults, tabView, tabCreate];
+  const panels = [panelHome, panelStudents, panelResults, panelView, panelCreate];
 
   tabs.forEach((tab, index) => {
     if (tab) {
@@ -48,10 +53,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addQuestionBtn = document.getElementById('btn-add-question-form');
   const formAlertBox = document.getElementById('form-alert-box');
 
+  const getLocalDateStr = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Set today's date as default in assign date picker
   const dateInput = document.getElementById('quiz-date');
   if (dateInput) {
-    dateInput.value = new Date().toISOString().split('T')[0];
+    dateInput.value = getLocalDateStr();
   }
 
   // --- STATE FOR QUIZ QUESTIONS CREATION ---
@@ -296,6 +309,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const startTime = document.getElementById('quiz-start-time').value;
     const endTime = document.getElementById('quiz-end-time').value;
 
+    if (startTime && endTime && startTime >= endTime) {
+      showFormAlert('Validation Error: Start Time must be earlier than End Time (e.g. Start 09:00, End 17:00).', 'danger');
+      return;
+    }
+
     const questionCards = questionsContainer.querySelectorAll('.admin-question-builder');
     if (questionCards.length === 0) {
       showFormAlert('You must add at least one question to the quiz.', 'danger');
@@ -352,7 +370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadQuizzes();
       
       if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = getLocalDateStr();
       }
     } catch (err) {
       showFormAlert(err.message, 'danger');
@@ -405,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderFilteredAttempts(filterQuizId = 'all') {
     let filtered = allAttempts;
     if (filterQuizId !== 'all') {
-      filtered = allAttempts.filter(a => a.quiz && (a.quiz._id === filterQuizId || a.quiz === filterQuizId));
+      filtered = allAttempts.filter(a => a.quiz_id === filterQuizId);
     }
 
     totalAttemptsEl.textContent = filtered.length;
@@ -429,31 +447,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     attemptsTableBody.innerHTML = '';
     filtered.forEach((attempt, index) => {
-      const accuracy = Math.round((attempt.score / attempt.totalQuestions) * 100);
+      const accuracy = Math.round((attempt.score / attempt.total_questions) * 100);
       totalAccuracy += accuracy;
-      
-      const isFlagged = attempt.status === 'terminated' || attempt.violationCount >= 3;
+
+      const isFlagged = attempt.status === 'terminated' || attempt.violation_count >= 3;
       if (isFlagged) flaggedCount++;
 
-      const studentName = attempt.student ? attempt.student.username : 'Unknown Student';
-      const studentEmail = attempt.student ? attempt.student.email : '';
-      const quizTitle = attempt.quiz ? attempt.quiz.title : 'Deleted Quiz';
+      const studentName = attempt.users ? attempt.users.username : 'Unknown Student';
+      const studentEmail = attempt.users ? attempt.users.email : '';
+      const quizTitle = attempt.quizzes ? attempt.quizzes.title : 'Deleted Quiz';
 
-      const dateStr = new Date(attempt.completedAt).toLocaleDateString(undefined, {
+      const dateStr = new Date(attempt.completed_at).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       });
 
-      const mins = Math.floor(attempt.timeTaken / 60);
-      const secs = attempt.timeTaken % 60;
+      const mins = Math.floor(attempt.time_taken / 60);
+      const secs = attempt.time_taken % 60;
       const timeStr = `${mins}m ${secs}s`;
 
-      const warningClass = attempt.violationCount === 0 
-        ? 'color: var(--success); font-weight:600;' 
-        : attempt.violationCount < 3 
-          ? 'color: var(--warning); font-weight:600;' 
+      const warningClass = attempt.violation_count === 0
+        ? 'color: var(--success); font-weight:600;'
+        : attempt.violation_count < 3
+          ? 'color: var(--warning); font-weight:600;'
           : 'color: var(--danger); font-weight:600;';
 
       const statusLabel = attempt.status === 'terminated'
@@ -488,9 +506,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="font-size:0.75rem; color:var(--text-muted);">${studentEmail}</div>
           </td>
           <td>${quizTitle}</td>
-          <td><strong>${attempt.score}/${attempt.totalQuestions}</strong> (${accuracy}%)</td>
+          <td><strong>${attempt.score}/${attempt.total_questions}</strong> (${accuracy}%)</td>
           <td>${timeStr}</td>
-          <td style="${warningClass}">${attempt.violationCount}</td>
+          <td style="${warningClass}">${attempt.violation_count}</td>
           <td>${statusLabel}</td>
           <td>
             <button class="timeline-toggle" onclick="toggleTimelineDrawer('${trId}')">Inspect Logs</button>
@@ -538,7 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentSelection = quizFilterSelect.value;
         quizFilterSelect.innerHTML = '<option value="all">-- All Conducted Tests --</option>';
         quizzes.forEach(q => {
-          quizFilterSelect.innerHTML += `<option value="${q._id}">${q.title} (${q.assignedDate})</option>`;
+          quizFilterSelect.innerHTML += `<option value="${q.id}">${q.title} (${q.assigned_date})</option>`;
         });
         if (currentSelection) quizFilterSelect.value = currentSelection;
 
@@ -554,23 +572,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       quizzesTableBody.innerHTML = '';
       quizzes.forEach(quiz => {
         const todayStr = new Date().toISOString().split('T')[0];
-        const isToday = quiz.assignedDate === todayStr;
-        const statusText = quiz.isActive 
+        const isToday = quiz.assigned_date === todayStr;
+        const statusText = quiz.is_active
           ? (isToday ? '<span class="status-badge clean">ACTIVE TODAY</span>' : '<span class="status-badge" style="background:rgba(124, 58, 237, 0.1); color:var(--primary); border:1px solid var(--primary);">SCHEDULED</span>')
           : '<span class="status-badge violated">INACTIVE</span>';
 
-        const hoursText = `${quiz.startTime || '00:00'} - ${quiz.endTime || '23:59'}`;
+        const hoursText = `${quiz.start_time || '00:00'} - ${quiz.end_time || '23:59'}`;
 
         quizzesTableBody.innerHTML += `
           <tr>
             <td><strong>${quiz.title}</strong></td>
-            <td>${quiz.assignedDate}</td>
+            <td>${quiz.assigned_date}</td>
             <td><code>${hoursText}</code></td>
             <td>${quiz.questions.length} questions</td>
-            <td>${quiz.timeLimit} mins</td>
+            <td>${quiz.time_limit} mins</td>
             <td>${statusText}</td>
             <td>
-              <button class="btn-logout" style="padding:0.2rem 0.6rem; font-size:0.8rem; margin:0;" onclick="deleteQuiz('${quiz._id}')">Delete</button>
+              <button class="btn-logout" style="padding:0.2rem 0.6rem; font-size:0.8rem; margin:0;" onclick="deleteQuiz('${quiz.id}')">Delete</button>
             </td>
           </tr>
         `;
