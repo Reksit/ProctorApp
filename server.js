@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Supabase client
@@ -23,6 +24,32 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
 });
+
+// Rate Limiting Middleware - Prevent DDoS Attacks
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    status: 429,
+    message: 'Too many requests from this IP. Please try again after 15 minutes.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting for static files
+  skip: (req) => {
+    return req.path.startsWith('/css') ||
+           req.path.startsWith('/js') ||
+           req.path.startsWith('/images') ||
+           req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg)$/);
+  },
+  // Use user ID if authenticated, otherwise use IP
+  keyGenerator: (req) => {
+    return req.user?.id || req.ip;
+  }
+});
+
+// Apply rate limiter to all API routes
+app.use('/api/', apiLimiter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

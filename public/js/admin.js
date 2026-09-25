@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const quizForm = document.getElementById('quiz-creator-form');
   const questionsContainer = document.getElementById('questions-builder-container');
   const addQuestionBtn = document.getElementById('btn-add-question-form');
-  const formAlertBox = document.getElementById('form-alert-box');
 
   const getLocalDateStr = () => {
     const d = new Date();
@@ -309,8 +308,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     const startTime = document.getElementById('quiz-start-time').value;
     const endTime = document.getElementById('quiz-end-time').value;
 
+    // Comprehensive Time Validation
+    const now = new Date();
+    const currentDate = getLocalDateStr();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    // 1. Check if end time is before start time
     if (startTime && endTime && startTime >= endTime) {
-      showFormAlert('Validation Error: Start Time must be earlier than End Time (e.g. Start 09:00, End 17:00).', 'danger');
+      showFormAlert('⚠️ Validation Error: End Time must be later than Start Time. Example: Start at 09:00, End at 17:00.', 'error');
+      return;
+    }
+
+    // 2. Check if assigned date is in the past
+    if (assignedDate < currentDate) {
+      showFormAlert('⚠️ Validation Error: Cannot assign quiz to a past date. Please select today or a future date.', 'error');
+      return;
+    }
+
+    // 3. Check if start time is in the past (only for today's date)
+    if (assignedDate === currentDate && startTime < currentTime) {
+      showFormAlert('⚠️ Validation Error: Start Time cannot be in the past. Current time is ' + currentTime + '. Please select a future time.', 'error');
+      return;
+    }
+
+    // 4. Check if end time is in the past (only for today's date)
+    if (assignedDate === currentDate && endTime < currentTime) {
+      showFormAlert('⚠️ Validation Error: End Time cannot be in the past. Current time is ' + currentTime + '. Please select a future time.', 'error');
+      return;
+    }
+
+    // 5. Check if time window is too short (at least 5 minutes)
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    const timeDiffMinutes = endMinutes - startMinutes;
+
+    if (timeDiffMinutes < 5) {
+      showFormAlert('⚠️ Validation Error: Test window must be at least 5 minutes long. Current window is ' + timeDiffMinutes + ' minute(s).', 'error');
       return;
     }
 
@@ -377,22 +412,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  function showFormAlert(message, type = 'danger') {
-    formAlertBox.textContent = message;
-    formAlertBox.style.display = 'block';
-    if (type === 'danger') {
-      formAlertBox.style.backgroundColor = 'var(--danger-bg)';
-      formAlertBox.style.border = '1px solid var(--danger)';
-      formAlertBox.style.color = '#fecaca';
-    } else {
-      formAlertBox.style.backgroundColor = 'var(--success-bg)';
-      formAlertBox.style.border = '1px solid var(--success)';
-      formAlertBox.style.color = '#a7f3d0';
+  // --- FLOATING ALERT SYSTEM ---
+  let alertTimeout;
+
+  function showFloatingAlert(message, type = 'error') {
+    const floatingAlert = document.getElementById('floating-alert');
+    const alertIcon = document.getElementById('floating-alert-icon');
+    const alertMessage = document.getElementById('floating-alert-message');
+    const alertClose = document.getElementById('floating-alert-close');
+
+    if (!floatingAlert) return;
+
+    // Clear any existing timeout
+    if (alertTimeout) {
+      clearTimeout(alertTimeout);
+    }
+
+    // Remove previous type classes
+    floatingAlert.classList.remove('success', 'error', 'warning');
+
+    // Set icon based on type
+    let iconHtml = '';
+    if (type === 'success') {
+      iconHtml = '✓';
+      floatingAlert.classList.add('success');
+    } else if (type === 'error' || type === 'danger') {
+      iconHtml = '⚠';
+      floatingAlert.classList.add('error');
+    } else if (type === 'warning') {
+      iconHtml = '!';
+      floatingAlert.classList.add('warning');
+    }
+
+    alertIcon.textContent = iconHtml;
+    alertMessage.textContent = message;
+
+    // Show the alert
+    floatingAlert.classList.add('show');
+
+    // Auto-hide after 5 seconds
+    alertTimeout = setTimeout(() => {
+      hideFloatingAlert();
+    }, 5000);
+
+    // Close button handler
+    alertClose.onclick = () => {
+      hideFloatingAlert();
+    };
+  }
+
+  function hideFloatingAlert() {
+    const floatingAlert = document.getElementById('floating-alert');
+    if (floatingAlert) {
+      floatingAlert.classList.remove('show');
+    }
+    if (alertTimeout) {
+      clearTimeout(alertTimeout);
     }
   }
 
+  // Alias for backward compatibility
+  function showFormAlert(message, type = 'danger') {
+    showFloatingAlert(message, type);
+  }
+
   function hideFormAlert() {
-    formAlertBox.style.display = 'none';
+    hideFloatingAlert();
   }
 
   let allAttempts = [];
@@ -527,6 +612,106 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     avgAccuracyEl.textContent = `${Math.round(totalAccuracy / filtered.length)}%`;
     flaggedAttemptsEl.textContent = flaggedCount;
+  }
+
+  // --- EXPORT TO EXCEL FUNCTIONALITY ---
+  function exportToExcel() {
+    const quizFilterSelect = document.getElementById('admin-quiz-filter');
+    const selectedQuizId = quizFilterSelect ? quizFilterSelect.value : 'all';
+
+    let filtered = allAttempts;
+    if (selectedQuizId !== 'all') {
+      filtered = allAttempts.filter(a => a.quiz_id === selectedQuizId);
+    }
+
+    if (filtered.length === 0) {
+      alert('No data to export. Please ensure there are test results available.');
+      return;
+    }
+
+    // Prepare data for Excel
+    const excelData = filtered.map(attempt => {
+      const accuracy = Math.round((attempt.score / attempt.total_questions) * 100);
+      const studentName = attempt.users ? attempt.users.username : 'Unknown Student';
+      const studentEmail = attempt.users ? attempt.users.email : '';
+      const quizTitle = attempt.quizzes ? attempt.quizzes.title : 'Deleted Quiz';
+
+      const dateStr = new Date(attempt.completed_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const mins = Math.floor(attempt.time_taken / 60);
+      const secs = attempt.time_taken % 60;
+      const timeStr = `${mins}m ${secs}s`;
+
+      const statusLabel = attempt.status === 'terminated'
+        ? 'TERMINATED'
+        : (attempt.violation_count >= 3 ? 'SUSPICIOUS' : 'SECURE');
+
+      // Compile violations details
+      let violationsDetails = '';
+      if (attempt.violations && attempt.violations.length > 0) {
+        violationsDetails = attempt.violations.map(v => {
+          const vTime = new Date(v.timestamp).toLocaleTimeString();
+          return `[${vTime}] ${v.type}: ${v.details}`;
+        }).join(' | ');
+      } else {
+        violationsDetails = 'No violations';
+      }
+
+      return {
+        'Student Name': studentName,
+        'Student Email': studentEmail,
+        'Quiz Title': quizTitle,
+        'Score': `${attempt.score}/${attempt.total_questions}`,
+        'Accuracy (%)': accuracy,
+        'Time Taken': timeStr,
+        'Violations Count': attempt.violation_count,
+        'Status': statusLabel,
+        'Completed At': dateStr,
+        'Violation Details': violationsDetails
+      };
+    });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths for better readability
+    ws['!cols'] = [
+      { wch: 20 }, // Student Name
+      { wch: 25 }, // Student Email
+      { wch: 30 }, // Quiz Title
+      { wch: 10 }, // Score
+      { wch: 12 }, // Accuracy
+      { wch: 12 }, // Time Taken
+      { wch: 15 }, // Violations Count
+      { wch: 12 }, // Status
+      { wch: 20 }, // Completed At
+      { wch: 50 }  // Violation Details
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Test Results');
+
+    // Generate filename with current date
+    const now = new Date();
+    const dateStamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    const filterLabel = selectedQuizId === 'all' ? 'All_Tests' : 'Filtered_Test';
+    const filename = `Test_Results_${filterLabel}_${dateStamp}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(wb, filename);
+  }
+
+  // Add event listener for export button
+  const exportBtn = document.getElementById('btn-export-excel');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportToExcel);
   }
 
   // --- FETCH CREATED QUIZZES TABLE ---

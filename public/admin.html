@@ -10,6 +10,15 @@
   <!-- Dynamic Navbar container -->
   <div id="navbar-container"></div>
 
+  <!-- Floating Alert/Toast Notification -->
+  <div id="floating-alert" class="floating-alert">
+    <div class="floating-alert-content">
+      <span id="floating-alert-icon" class="floating-alert-icon"></span>
+      <span id="floating-alert-message" class="floating-alert-message"></span>
+      <button id="floating-alert-close" class="floating-alert-close">&times;</button>
+    </div>
+  </div>
+
   <div class="container">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
@@ -106,12 +115,22 @@
       <div class="history-card glass">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
           <h3 style="margin:0;">Student Progress & Proctor Audits</h3>
-          
-          <div style="display:flex; align-items:center; gap:0.6rem;">
-            <label for="admin-quiz-filter" style="font-size:0.85rem; color:var(--text-secondary); font-weight:500;">Filter by Test:</label>
-            <select id="admin-quiz-filter" class="input-control" style="padding:0.4rem 0.8rem; font-size:0.85rem; min-width:220px;">
-              <option value="all">-- All Conducted Tests --</option>
-            </select>
+
+          <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <label for="admin-quiz-filter" style="font-size:0.85rem; color:var(--text-secondary); font-weight:500;">Filter by Test:</label>
+              <select id="admin-quiz-filter" class="input-control" style="padding:0.4rem 0.8rem; font-size:0.85rem; min-width:220px;">
+                <option value="all">-- All Conducted Tests --</option>
+              </select>
+            </div>
+            <button id="btn-export-excel" class="btn-secondary" style="padding:0.5rem 1.2rem; font-size:0.85rem; background:var(--success); color:white; border:none; display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export to Excel
+            </button>
           </div>
         </div>
         <div class="table-responsive">
@@ -168,9 +187,7 @@
     <div id="panel-admin-create" class="admin-panel">
       <div class="admin-panel-card glass" style="max-width: 900px; margin: 0 auto;">
           <h3>Assign / Create Quiz</h3>
-          
-          <div id="form-alert-box" style="display:none; padding:0.8rem; border-radius:12px; margin-bottom:1.2rem; font-size:0.9rem; font-weight:500; text-align:center;"></div>
-          
+
           <form class="quiz-creator-form" id="quiz-creator-form">
             <div class="form-group">
               <label for="quiz-title">Quiz Title</label>
@@ -244,6 +261,8 @@
     </div>
   </div>
 
+  <!-- SheetJS library for Excel export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/admin.js"></script>
 </body>

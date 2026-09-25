@@ -1584,3 +1584,148 @@ td {
     white-space: nowrap;
   }
 }
+
+/* --- EXCEL EXPORT BUTTON --- */
+#btn-export-excel {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+#btn-export-excel:hover {
+  background: var(--success) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+#btn-export-excel:active {
+  transform: translateY(0);
+}
+
+/* --- FLOATING ALERT / TOAST NOTIFICATION --- */
+.floating-alert {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 320px;
+  max-width: 600px;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: none;
+}
+
+.floating-alert.show {
+  top: 20px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+.floating-alert-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.floating-alert.success .floating-alert-content {
+  border-left: 4px solid var(--success);
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, var(--bg-card) 100%);
+}
+
+.floating-alert.error .floating-alert-content {
+  border-left: 4px solid var(--danger);
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, var(--bg-card) 100%);
+}
+
+.floating-alert.warning .floating-alert-content {
+  border-left: 4px solid var(--warning);
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, var(--bg-card) 100%);
+}
+
+.floating-alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.floating-alert.success .floating-alert-icon {
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.floating-alert.error .floating-alert-icon {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.floating-alert.warning .floating-alert-icon {
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.floating-alert-message {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.floating-alert-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.floating-alert-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments for floating alert */
+@media (max-width: 768px) {
+  .floating-alert {
+    min-width: 280px;
+    max-width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
+    transform: translateX(0);
+  }
+
+  .floating-alert.show {
+    left: 20px;
+    right: 20px;
+  }
+
+  .floating-alert-content {
+    padding: 0.8rem 1rem;
+  }
+
+  .floating-alert-message {
+    font-size: 0.85rem;
+  }
+}
