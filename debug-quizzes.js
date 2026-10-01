@@ -4,7 +4,7 @@ const supabase = require('./supabaseClient');
 
 async function debugQuizzes() {
   console.log('=== DEBUGGING QUIZZES ===\n');
-
+  //hii
   // Current server date/time
   const now = new Date();
   const year = now.getFullYear();
